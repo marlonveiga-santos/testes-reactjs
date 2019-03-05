@@ -7,11 +7,11 @@
     <style type="text/CSS">
 
         .TM { border: 1px solid navy;            
-        float:left;        
-        background-color:palegreen;
-        border-radius: 15px;
-        margin:1px; 
-        padding: 9px;} 
+            float:left;        
+            background-color:palegreen;
+            border-radius: 15px;
+            margin:1px; 
+            padding: 9px;} 
         .Ultima { border: 1px solid navy;   
             float:left; border-radius: 15px;
             clear:both;
@@ -27,31 +27,36 @@
                 padding: 10px;
 
             }
-            /*alternar cores da tabela*/
+            /*alternar cores da tabela - OBS.: A alternância não foi reconhecida pelo DOM*/
             #saida4 tr:nth-child(even){
-                background-color: darkcyan;
+                background-color:deepskyblue;
             }
-            #saida4 tr:nth-child(odd){
+            #saida4 tr{
                 background-color:bisque ;
+            }
+
+            /* Oculta parte da tabela - Pode ser removida para mostrar a tabela completa*/
+            .hidd{
+                visibility: hidden
+            }
+            .ntg td:nth-child(n+7){
+                display: none
             }
     </style>
 
     <script>
         /*getters de valores*/
-
         function getPedido() {
             var p = document.getElementById("numeroPedido").value;
             return p;
         }
-
-
         function getValor() {
             var v = document.getElementById("valorPedido").value;
+            v = v.replace(".", ""); //Opcional para tratamento de pontos
             v = v.replace(",", "");
             var y = parseInt(v);
             return y;
         }
-
         function getExtra1() {
             var x = document.getElementById("bebida");
             if (x.checked == false) {
@@ -80,7 +85,6 @@
             }
         }
 
-
         /*criação das listas*/
         var colunaPedido = [];
         var colunaValor = [];
@@ -88,13 +92,10 @@
         var colunaAcompanhamento = [];
         var colunaSobremesa = [];
 
-
         /*tratamento do valor de entrada (dinheiro)*/
         function trataSaida(preco) {
-            //parseInt(preco);
             var s = (preco / 100).toFixed(2);
             var saida = s.replace(".", ",");
-            //saida = saida.replace(".",",");
             return saida;
         }
 
@@ -107,7 +108,6 @@
             document.getElementById("sobremesa").checked = false;
         }
 
-
         /*Função principal*/
         function adicionarPedido() {
             colunaPedido.push(getPedido());
@@ -115,6 +115,19 @@
             colunaBebida.push(getExtra1());
             colunaAcompanhamento.push(getExtra2());
             colunaSobremesa.push(getExtra3());
+            score();
+            achaNan();
+            apagador();
+
+        }
+
+        /*Função de remoção*/
+        function removerPedido() {
+            colunaPedido.pop(getPedido());
+            colunaValor.pop(getValor());
+            colunaBebida.pop(getExtra1());
+            colunaAcompanhamento.pop(getExtra2());
+            colunaSobremesa.pop(getExtra3());
             score();
             apagador();
         }
@@ -128,8 +141,49 @@
             s1.innerHTML = "R$ " + trataSaida(media());
             s2.innerHTML = "R$ " + trataSaida(ultimo());
             s3.innerHTML = "R$ " + trataSaida(total());
-            s4.innerHTML += "<tr><td> No: " + [colunaPedido.length] + "</td><td>" + colunaPedido[colunaPedido.length - 1] + "</td><td> R$ " + trataSaida(colunaValor[colunaValor.length - 1]) + "</td><td>" + colunaBebida[colunaBebida.length - 1] + "</td><td>" + colunaAcompanhamento[colunaAcompanhamento.length - 1] + "</td><td>" + colunaSobremesa[colunaSobremesa.length - 1] + "</td></tr>";
-            //s5.innerHTML = trataSaida(revs());
+            geraTabela();
+        }
+
+        /*// gera tabela - função original
+        function geraTabela() {
+            var len = colunaPedido.length;
+            saida4.innerHTML = "<tr style= 'background-color:deepskyblue'><td>Numero</td><td>Pedido</td><td>Valor</td><td>Bebida</td><td>Acompanhamento</td><td>Sobremesa</td></tr>";
+            for (var i = 0; i < len; i++) {
+                saida4.innerHTML += "<tr><td> No: " + i + "</td><td>" + colunaPedido[i] + "</td><td> R$ " + trataSaida(colunaValor[i]) + "</td><td>" + colunaBebida[i] + "</td><td>" + colunaAcompanhamento[i] + "</td><td>" + colunaSobremesa[i] + "</td></tr>";
+            }
+        }*/
+
+        /*Função mais verbosa e mais confusa (traversei duas tabelas para impressão)*/
+        function geraTabela(){
+            var totalGeral = (colunaPedido.length+c)-1;
+            var len = colunaPedido.length;
+            var revs = totalGeral/colunaPedido.length;
+            //cabeçalho da tabela
+            var head1 = "<tr style= 'background-color:deepskyblue'><td>Numero</td><td>Pedido</td>";
+            var head2 = "</td><td>Valor</td><td>Bebida</td><td>Acompanhamento</td><td>Sobremesa</td>";
+            var head3 = "<td></td><td></td><td>Contatos</td><td>Pedidos</td><td>Reversao</td><td>Media</td><td>valor Total</td></tr>";
+            // Criação da primeira linha & Tratamento de valores nulos (Corner case)
+            var line1_1 = "<tr><td> No: " + 1 + "</td><td>" + colunaPedido[0] + "</td><td> R$ " + trataSaida(colunaValor[0]) + "</td>";
+            var line1_2 = "<td>" + colunaBebida[0] + "</td><td>" + colunaAcompanhamento[0] + "</td><td>" + colunaSobremesa[0] + "</td>";
+            var line1_3 = "<td></td><td></td><td>"+totalGeral+"</td><td>"+colunaPedido.length+"</td><td>"+(revs).toFixed(2)+"</td><td>R$ "+trataSaida(media())+"</td><td>R$ "+trataSaida(total())+"</td></tr>";        
+            if(isNaN(media())){
+                line1_1 = "<tr><td> - </td><td> - </td><td> - </td>";
+                line1_2 = "<td> - </td><td> - </td><td> - </td>";
+                line1_3 = "<td></td><td></td><td>"+totalGeral+"</td><td>"+colunaPedido.length+"</td><td> - </td><td> - </td><td> - </td></tr>";
+                saida4.innerHTML = head1.concat(head2,head3);//Aglutinador: serve apenas para não ficar com um linhão de texto...
+                saida4.innerHTML += line1_1.concat(line1_2,line1_3);
+                }
+            else{
+                saida4.innerHTML = head1.concat(head2,head3); //Aglutinador padrão
+                saida4.innerHTML += line1_1.concat(line1_2,line1_3);            
+            //criação das linhas de 2 até N
+            for (var i = 1; i < len; i++) {                
+                line1_1 = "<tr><td> No: " + (i+1) + "</td><td>" + colunaPedido[i] + "</td><td> R$ " + trataSaida(colunaValor[i]) + "</td>";
+                line1_2 = "<td>" + colunaBebida[i] + "</td><td>" + colunaAcompanhamento[i] + "</td><td>" + colunaSobremesa[i] + "</td>";
+                saida4.innerHTML += line1_1.concat(line1_2);
+                
+                }
+            }
         }
 
         /*Calculador de média*/
@@ -155,21 +209,28 @@
         }
 
         /*Sem sucesso*/
-        var c = 0;
-        function semConv(n) {
+        var c = 1;
+        function semConv() {
             c++;
-            alert(c);
+            score();
             return c;
+            alert("Adicionado pedido sem venda!!!");
         }
-        
-/*tratamento nulo*/
-        /*saida de tabela*/
+
+        /*tratamento nulo*/
+        function achaNan() {
+            if (isNaN(total())) {
+                alert("Insira um valor válido!");
+                removerPedido();
+            }
+        }
+
         /*calculos outros*/
-        function exporter () {
-    var tabelahtm = document.getElementById("saida4");
-    var cria = tabelahtm.outerHTML;
-    window.open('data:application/vnd.ms-excel,' + encodeURIComponent(cria));
-    indow.close();
+        function exporter() {
+            var tabelahtm = document.getElementById("teste");
+            var cria = tabelahtm.outerHTML;
+            window.open('data:application/vnd.ms-excel,' + encodeURIComponent(cria));
+            window.close();
         }
 
     </script>
@@ -178,7 +239,7 @@
 
 <body>
 
-    <header> Vers&atilde;o 3.2</header>
+    <header> Vers&atilde;o 4.4</header>
     <div id="main">
         <form>
             <fieldset>
@@ -192,15 +253,15 @@
                 <p>Acompanhamento: <input id="acompanhamento" type="checkbox" /></p>
                 <p>Sobremesa: <input id="sobremesa" type="checkbox" /></p>
                 <input type="button" value="Inserir" onclick="adicionarPedido()" /> <br><br>
-                <input id="btSaida" type="button" value="remover ultimo pedido" onclick="remUT()" />
+                <input id="btSaida" type="button" value="remover ultimo pedido" onclick="removerPedido()" />
                 <input id="btSemV" type="button" value="Sem venda" onclick="semConv()" />
                 <br><br>
                 <input type="button" value="Exportar" onclick="exporter()" /> <br><br>
-                <div class="TM">Ticket Médio (Aproximado)
+                <div class="TM">Media (Aproximado)
                     <div id="saida"></div>
                 </div>
                 <br><br>
-                <div class="Ultima">Último Pedido:
+                <div class="Ultima">Ultimo Pedido:
                     <div id="saida2"></div>
                 </div>
                 <br><br>
@@ -212,16 +273,11 @@
 
         </form>
         <br>
-        <table id="saida4">
-            <tr></tr>
-            <td>Numero</td>
-            <td>Pedido</td>
-            <td>Valor</td>
-            <td>Bebida</td>
-            <td>Acompanhamento</td>
-            <td>Sobremesa</td>
-            </tr>
+        <div id="teste">
+        <table id="saida4" class="ntg">
+
         </table>
+        
         <div>&copy; 2019. Marlon Veiga :) </div>
     </div>
 </body>
