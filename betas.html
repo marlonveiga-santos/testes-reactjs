@@ -1,0 +1,229 @@
+<!doctype html>
+
+<head>
+
+    <tittle>Calculadora de Pedidos</tittle>
+
+    <style type="text/CSS">
+
+        .TM { border: 1px solid navy;            
+        float:left;        
+        background-color:palegreen;
+        border-radius: 15px;
+        margin:1px; 
+        padding: 9px;} 
+        .Ultima { border: 1px solid navy;   
+            float:left; border-radius: 15px;
+            clear:both;
+            margin:1px;
+            padding: 9px;  
+            background-color:mediumturquoise}
+            form{float:left;background-color: silver;}
+            #saida3{clear:both}
+            #saida4 td{
+                text-align: center;
+                border: 1px solid black;
+                margin: -6px;
+                padding: 10px;
+
+            }
+            /*alternar cores da tabela*/
+            #saida4 tr:nth-child(even){
+                background-color: darkcyan;
+            }
+            #saida4 tr:nth-child(odd){
+                background-color:bisque ;
+            }
+    </style>
+
+    <script>
+        /*getters de valores*/
+
+        function getPedido() {
+            var p = document.getElementById("numeroPedido").value;
+            return p;
+        }
+
+
+        function getValor() {
+            var v = document.getElementById("valorPedido").value;
+            v = v.replace(",", "");
+            var y = parseInt(v);
+            return y;
+        }
+
+        function getExtra1() {
+            var x = document.getElementById("bebida");
+            if (x.checked == false) {
+                return 0;
+            }
+            else {
+                return 1;
+            }
+        }
+        function getExtra2() {
+            var x = document.getElementById("acompanhamento");
+            if (x.checked == false) {
+                return 0;
+            }
+            else {
+                return 1;
+            }
+        }
+        function getExtra3() {
+            var x = document.getElementById("sobremesa");
+            if (x.checked == false) {
+                return 0;
+            }
+            else {
+                return 1;
+            }
+        }
+
+
+        /*criação das listas*/
+        var colunaPedido = [];
+        var colunaValor = [];
+        var colunaBebida = [];
+        var colunaAcompanhamento = [];
+        var colunaSobremesa = [];
+
+
+        /*tratamento do valor de entrada (dinheiro)*/
+        function trataSaida(preco) {
+            //parseInt(preco);
+            var s = (preco / 100).toFixed(2);
+            var saida = s.replace(".", ",");
+            //saida = saida.replace(".",",");
+            return saida;
+        }
+
+        /*limpatela*/
+        function apagador() {
+            document.getElementById("numeroPedido").value = null;
+            document.getElementById("valorPedido").value = null;
+            document.getElementById("bebida").checked = false;
+            document.getElementById("acompanhamento").checked = false;
+            document.getElementById("sobremesa").checked = false;
+        }
+
+
+        /*Função principal*/
+        function adicionarPedido() {
+            colunaPedido.push(getPedido());
+            colunaValor.push(getValor());
+            colunaBebida.push(getExtra1());
+            colunaAcompanhamento.push(getExtra2());
+            colunaSobremesa.push(getExtra3());
+            score();
+            apagador();
+        }
+
+        /*gerador de saida: The hard way...*/
+        function score() {
+            var s1 = document.getElementById("saida");
+            var s2 = document.getElementById("saida2");
+            var s3 = document.getElementById("saida3");
+            var s4 = document.getElementById("saida4");
+            s1.innerHTML = "R$ " + trataSaida(media());
+            s2.innerHTML = "R$ " + trataSaida(ultimo());
+            s3.innerHTML = "R$ " + trataSaida(total());
+            s4.innerHTML += "<tr><td> No: " + [colunaPedido.length] + "</td><td>" + colunaPedido[colunaPedido.length - 1] + "</td><td> R$ " + trataSaida(colunaValor[colunaValor.length - 1]) + "</td><td>" + colunaBebida[colunaBebida.length - 1] + "</td><td>" + colunaAcompanhamento[colunaAcompanhamento.length - 1] + "</td><td>" + colunaSobremesa[colunaSobremesa.length - 1] + "</td></tr>";
+            //s5.innerHTML = trataSaida(revs());
+        }
+
+        /*Calculador de média*/
+        function media() {
+            var qt = colunaValor.length;
+            var res = total() / qt;
+            return res;
+        }
+
+        /*Calculador de total*/
+        function total() {
+            var tot = 0;
+            for (var i = 0; i < colunaValor.length; i++) {
+                tot += colunaValor[i];
+            }
+            return tot;
+        }
+
+        /*Ultima entrada*/
+        function ultimo() {
+            var ult = colunaValor[colunaValor.length - 1];
+            return ult;
+        }
+
+        /*Sem sucesso*/
+        var c = 0;
+        function semConv(n) {
+            c++;
+            alert(c);
+            return c;
+        }
+        
+/*tratamento nulo*/
+        /*saida de tabela*/
+        /*calculos outros*/
+        function exporter () {
+    var tabelahtm = document.getElementById("saida4");
+    var cria = tabelahtm.outerHTML;
+    window.open('data:application/vnd.ms-excel,' + encodeURIComponent(cria));
+    indow.close();
+        }
+
+    </script>
+
+</head>
+
+<body>
+
+    <header> Vers&atilde;o 3.2</header>
+    <div id="main">
+        <form>
+            <fieldset>
+                <legend>Ferramenta TM</legend>
+                <p>Insira o valor do pedido (ex: 10050 ou 100,50).</p>
+                <p>Clique no botão inserir para armazenar o valor do pedido.</p>
+                <p>Em caso de erro, clique no botão remover último pedido.</p>
+                <p>Número do pedido: <input id="numeroPedido" type="text" size="10" /></p>
+                <p>Valor do pedido: <input id="valorPedido" type="text" size="10" /></p>
+                <p>Bebida: <input id="bebida" type="checkbox" /></p>
+                <p>Acompanhamento: <input id="acompanhamento" type="checkbox" /></p>
+                <p>Sobremesa: <input id="sobremesa" type="checkbox" /></p>
+                <input type="button" value="Inserir" onclick="adicionarPedido()" /> <br><br>
+                <input id="btSaida" type="button" value="remover ultimo pedido" onclick="remUT()" />
+                <input id="btSemV" type="button" value="Sem venda" onclick="semConv()" />
+                <br><br>
+                <input type="button" value="Exportar" onclick="exporter()" /> <br><br>
+                <div class="TM">Ticket Médio (Aproximado)
+                    <div id="saida"></div>
+                </div>
+                <br><br>
+                <div class="Ultima">Último Pedido:
+                    <div id="saida2"></div>
+                </div>
+                <br><br>
+                <div class="TM">Total:
+                    <div id="saida3"></div>
+                </div>
+
+            </fieldset>
+
+        </form>
+        <br>
+        <table id="saida4">
+            <tr></tr>
+            <td>Numero</td>
+            <td>Pedido</td>
+            <td>Valor</td>
+            <td>Bebida</td>
+            <td>Acompanhamento</td>
+            <td>Sobremesa</td>
+            </tr>
+        </table>
+        <div>&copy; 2019. Marlon Veiga :) </div>
+    </div>
+</body>
+
+</html>
